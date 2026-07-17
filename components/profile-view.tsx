@@ -84,7 +84,7 @@ export function ProfileView({ userName, userImage }: { userName: string; userIma
   return (
     <div className="space-y-10 pb-6">
       {/* Header */}
-      <div className="flex items-end gap-6">
+      <div className="flex items-center gap-6">
         <button
           onClick={() => fileRef.current?.click()}
           aria-label="Choose profile photo"

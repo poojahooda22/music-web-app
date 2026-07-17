@@ -301,7 +301,7 @@ function GenreView({ genre }: { genre: string }) {
   );
 }
 
-function PlaylistView({ id, name, userName }: { id: number; name: string; userName: string }) {
+function PlaylistView({ id, name }: { id: number; name: string }) {
   const { data, isLoading, isError, refetch } = usePlaylist(id);
   const setView = useView((s) => s.setView);
   if (isLoading)
@@ -331,7 +331,6 @@ function PlaylistView({ id, name, userName }: { id: number; name: string; userNa
       back={{ kind: "playlists" }}
       eyebrow="Playlist"
       title={currentName}
-      owner={userName}
       image={tracks.find((t) => t.imageUrl)?.imageUrl}
       tracks={tracks}
       showDate
@@ -342,7 +341,7 @@ function PlaylistView({ id, name, userName }: { id: number; name: string; userNa
 }
 
 /** The user's liked songs — a top-level library tab, no back navigation. */
-function LikedView({ userName }: { userName: string }) {
+function LikedView() {
   const { data: tracks = [], isLoading, isError, refetch } = useLikes();
   if (isLoading)
     return (
@@ -363,7 +362,6 @@ function LikedView({ userName }: { userName: string }) {
     <DetailView
       eyebrow="Playlist"
       title="Liked Songs"
-      owner={userName}
       // Signature gradient cover, kept monochrome to stay on our design system
       // (primary = grayscale) rather than Spotify's purple.
       cover={
@@ -556,7 +554,7 @@ const MainView = memo(function MainView({
     case "playlists":
       return <PlaylistsView />;
     case "likes":
-      return <LikedView userName={userName} />;
+      return <LikedView />;
     case "profile":
       return <ProfileView userName={userName} userImage={userImage} />;
     case "genres":
@@ -568,7 +566,7 @@ const MainView = memo(function MainView({
     case "album":
       return <AlbumView id={view.id} title={view.title} />;
     case "playlist":
-      return <PlaylistView id={view.id} name={view.name} userName={userName} />;
+      return <PlaylistView id={view.id} name={view.name} />;
     case "search":
       return <SearchView q={view.q} />;
   }
