@@ -1,0 +1,193 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@source "../app";
+@source "../components";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Theme tokens ported from the rare design system.
+ * The design system is Tailwind v3 + `--rare-*` tokens; this project is Tailwind v4 +
+ * shadcn semantic tokens, so the grayscale (monochromatic) PALETTE is mapped onto the
+ * shadcn token names our UI primitives consume. Same look, compatible stack.
+ *
+ * gray scale:
+ *   25 #fafafc · 50 #f2f3f5 · 100 #dcdce0 · 200 #bebec2 · 300 #a5a5a8 · 400 #7f8085
+ *   500 #6c6c70 · 600 #535357 · 700 #3e3f42 · 800 #2b2b2e · 900 #1d1d1f · 950 #131314
+ * error ramp (rare-error-*): 400 #f97066 · 500 #f04438 · 600 #d92d20
+ *   → light --destructive = error-600 (system light bg-error-solid / text-error)
+ *   → dark  --destructive = error-500 (system dark fg-error / solid-hover)
+ * success ramp (rare-success-*): 500 #17b26a · 600 #079455
+ *   → light --success = success-600 (system light fg-success)
+ *   → dark  --success = success-500 (system dark fg-success; alert tint = 10%
+ *     bg / 30% border of the same value, exactly the system's dark recipe)
+ */
+
+@theme inline {
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ── Light theme (design-system light palette) ────────────────────────── */
+:root {
+  --radius: 0.75rem;
+
+  --background: #ffffff;
+  --foreground: #1d1d1f;
+
+  --card: #ffffff;
+  --card-foreground: #1d1d1f;
+  --popover: #ffffff;
+  --popover-foreground: #1d1d1f;
+
+  --primary: #1d1d1f;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f2f3f5;
+  --secondary-foreground: #3e3f42;
+
+  --muted: #f2f3f5;
+  --muted-foreground: #6c6c70;
+
+  --accent: #f2f3f5;
+  --accent-foreground: #1d1d1f;
+
+  --destructive: #d92d20;
+  --success: #079455;
+
+  --border: #dcdce0;
+  --input: #dcdce0;
+  --ring: #a5a5a8;
+
+  --sidebar: #f7f8f9;
+  --sidebar-foreground: #535357;
+  --sidebar-primary: #1d1d1f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e9eaec;
+  --sidebar-accent-foreground: #1d1d1f;
+  --sidebar-border: #dcdce0;
+  --sidebar-ring: #a5a5a8;
+}
+
+/* ── Dark theme (design-system dark palette — app default) ────────────── */
+.dark {
+  --background: #131314;
+  --foreground: #f2f3f5;
+
+  --card: #1d1d1f;
+  --card-foreground: #f2f3f5;
+  --popover: #1d1d1f;
+  --popover-foreground: #f2f3f5;
+
+  --primary: #f2f3f5;
+  --primary-foreground: #1d1d1f;
+
+  --secondary: #2b2b2e;
+  --secondary-foreground: #f2f3f5;
+
+  --muted: #1d1d1f;
+  --muted-foreground: #a5a5a8;
+
+  --accent: #2b2b2e;
+  --accent-foreground: #f2f3f5;
+
+  --destructive: #f04438;
+  --success: #17b26a;
+
+  --border: #2b2b2e;
+  --input: #3e3f42;
+  --ring: #6c6c70;
+
+  --sidebar: #131314;
+  --sidebar-foreground: #a5a5a8;
+  --sidebar-primary: #f2f3f5;
+  --sidebar-primary-foreground: #1d1d1f;
+  --sidebar-accent: #1d1d1f;
+  --sidebar-accent-foreground: #f2f3f5;
+  --sidebar-border: #2b2b2e;
+  --sidebar-ring: #6c6c70;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* The app shell is select-none (player chrome); typing surfaces stay selectable.
+   Top-level on purpose: rules inside @layer base have been dropped from the
+   compiled CSS by the v4 pipeline (same scar class as .no-scrollbar). */
+input,
+textarea,
+[contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Tailwind v4 preflight leaves buttons at cursor:default; every enabled button
+   in this app is a click action — show the hand. */
+button:not(:disabled),
+[role="button"] {
+  cursor: pointer;
+}
+
+/* Now-playing equalizer bars */
+@keyframes eq {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+.animate-eq {
+  animation: eq 0.9s ease-in-out infinite;
+  transform-origin: bottom;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-eq {
+    animation: none;
+  }
+}
+
+/* Hidden scrollbars (Spotify-style clean scroll areas) */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

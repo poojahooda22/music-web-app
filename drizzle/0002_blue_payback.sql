@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "playlist_items_playlist_song_uq" ON "playlist_items" USING btree ("playlist_id","song_id");
