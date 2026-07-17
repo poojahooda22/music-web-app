@@ -6,15 +6,12 @@ import { Music, Search } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
 import { useView } from "@/lib/view-store";
 import { ProfileMenu } from "./profile-menu";
+import { Button } from "./ui/button";
 
 export function TopBar({
-  name,
-  email,
-  image,
+  user,
 }: {
-  name: string;
-  email?: string;
-  image?: string;
+  user: { name: string; email?: string; image?: string } | null;
 }) {
   const [q, setQ] = useState("");
   const qRef = useRef("");
@@ -85,7 +82,23 @@ export function TopBar({
           className="bg-secondary border-border focus:border-ring/60 w-full rounded-full border py-2 pr-4 pl-10 text-sm outline-none"
         />
       </div>
-      <ProfileMenu name={name} email={email} image={image} onSignOut={onSignOut} />
+      {user ? (
+        <ProfileMenu
+          name={user.name}
+          email={user.email}
+          image={user.image}
+          onSignOut={onSignOut}
+        />
+      ) : (
+        <div className="flex shrink-0 items-center gap-1"> 
+          <Button
+            className="rounded-full"
+            onClick={() => (window.location.href = "/auth/sign-in")}
+          >
+            Log in
+          </Button>
+        </div>
+      )}
     </header>
   );
 }

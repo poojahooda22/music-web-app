@@ -22,9 +22,10 @@ interface PlaylistDetail {
  * round-trip settles. See app/query-provider.tsx.
  */
 
-export function usePlaylists() {
+export function usePlaylists(enabled = true) {
   return useQuery<PlaylistSummary[]>({
     queryKey: ["playlists"],
+    enabled,
     queryFn: async () => {
       const r = await fetch("/api/playlists");
       if (!r.ok) throw new Error("Failed to load playlists");

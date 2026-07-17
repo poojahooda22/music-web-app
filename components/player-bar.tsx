@@ -18,6 +18,8 @@ import {
 import { usePlayer, useCurrentTrack } from "@/lib/player-store";
 import { useLikedIds, useToggleLike } from "@/lib/use-likes";
 import { recordPlay } from "@/lib/use-top-tracks";
+import { useLoggedIn } from "@/lib/auth-context";
+import { useAuthPrompt } from "@/lib/auth-prompt-store";
 import { cn } from "@/lib/utils";
 
 function fmt(s: number) {
@@ -180,6 +182,8 @@ export function PlayerBar() {
 
   const likedIds = useLikedIds();
   const toggleLike = useToggleLike();
+  const loggedIn = useLoggedIn();
+  const promptLogin = useAuthPrompt((s) => s.prompt);
   const isLiked = current != null && likedIds.has(current.id);
 
   // Load + autoplay when the track changes, and record one play (fire-and-forget)
@@ -242,7 +246,10 @@ export function PlayerBar() {
         </div>
         {current && (
           <button
-            onClick={() => toggleLike.mutate({ track: current, liked: !isLiked })}
+            onClick={() => {
+              if (!loggedIn) return promptLogin("save songs");
+              toggleLike.mutate({ track: current, liked: !isLiked });
+            }}
             aria-label={isLiked ? "Remove from Liked Songs" : "Save to Liked Songs"}
             aria-pressed={isLiked}
             className={cn(

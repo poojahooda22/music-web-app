@@ -33,6 +33,10 @@ import { PlaylistMenu } from "./playlist-menu";
 import { FollowButton } from "./follow-button";
 import { ProfileView } from "./profile-view";
 import { Toaster } from "./toaster";
+import { AuthPrompt } from "./auth-prompt";
+import { SessionWatcher } from "./session-watcher";
+import { LoggedInProvider } from "@/lib/auth-context";
+import { useAuthPrompt } from "@/lib/auth-prompt-store";
 import { Button } from "./ui/button";
 
 const TABS = [
@@ -533,16 +537,35 @@ function SearchView({ q }: { q: string }) {
   );
 }
 
+/** Shown in place of a personal view when a signed-out visitor reaches it. */
+function GatedNotice({ reason }: { reason: string }) {
+  const prompt = useAuthPrompt((s) => s.prompt);
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 py-28 text-center">
+      <div className="bg-secondary flex size-12 items-center justify-center rounded-full">
+        <Library className="size-6" />
+      </div>
+      <div>
+        <p className="text-lg font-semibold">Log in to {reason}</p>
+        <p className="text-muted-foreground text-sm">Browsing stays open — sign in for your library.</p>
+      </div>
+      <Button onClick={() => prompt(reason)}>Sign in</Button>
+    </div>
+  );
+}
+
 // Memoized so the URGENT tab-highlight render (where deferredView is unchanged)
 // skips the content subtree entirely — only the deferred pass re-renders it.
 const MainView = memo(function MainView({
   view,
   userName,
   userImage,
+  loggedIn,
 }: {
   view: View;
   userName: string;
   userImage?: string;
+  loggedIn: boolean;
 }) {
   switch (view.kind) {
     case "home":
@@ -552,11 +575,15 @@ const MainView = memo(function MainView({
     case "artists":
       return <ArtistsView />;
     case "playlists":
-      return <PlaylistsView />;
+      return loggedIn ? <PlaylistsView /> : <GatedNotice reason="see your playlists" />;
     case "likes":
-      return <LikedView />;
+      return loggedIn ? <LikedView /> : <GatedNotice reason="see your liked songs" />;
     case "profile":
-      return <ProfileView userName={userName} userImage={userImage} />;
+      return loggedIn ? (
+        <ProfileView userName={userName} userImage={userImage} />
+      ) : (
+        <GatedNotice reason="see your profile" />
+      );
     case "genres":
       return <GenresView />;
     case "genre":
@@ -566,7 +593,11 @@ const MainView = memo(function MainView({
     case "album":
       return <AlbumView id={view.id} title={view.title} />;
     case "playlist":
-      return <PlaylistView id={view.id} name={view.name} />;
+      return loggedIn ? (
+        <PlaylistView id={view.id} name={view.name} />
+      ) : (
+        <GatedNotice reason="open this playlist" />
+      );
     case "search":
       return <SearchView q={view.q} />;
   }
@@ -592,63 +623,69 @@ const RightPanel = memo(function RightPanel() {
 });
 
 export function AppShell({
-  name,
-  email,
-  image,
+  user,
 }: {
-  name: string;
-  email?: string;
-  image?: string;
+  user: { name: string; email?: string; image?: string } | null;
 }) {
+  const loggedIn = user != null;
+  const name = user?.name ?? "";
+  const image = user?.image;
+
   const view = useView((s) => s.view);
   const setView = useView((s) => s.setView);
-  // The tab highlight reads the URGENT view (paints in the same frame as the
-  // click); the heavy main content reads a DEFERRED copy so its render can't
-  // block that highlight paint. Without this, a 289-row list render sat in the
-  // same commit as the highlight, so the active tab colour only appeared after
-  // the list finished.
+  // The tab highlight reads the URGENT view; the heavy main content reads a
+  // DEFERRED copy so its render can't block that highlight paint.
   const deferredView = useDeferredValue(view);
   const activeTab = tabFor(view);
 
+  // Personal tabs are hidden for signed-out visitors; browse tabs stay.
+  const tabs = TABS.filter((t) => loggedIn || (t.kind !== "playlists" && t.kind !== "likes"));
+
   return (
-    // select-none: click-heavy player chrome shouldn't text-select on drags and
-    // double-clicks; inputs re-enable selection in globals.css @layer base.
-    <div className="bg-background flex h-screen select-none flex-col">
-      <TopBar name={name} email={email} image={image} />
+    <LoggedInProvider value={loggedIn}>
+      {/* select-none: click-heavy player chrome shouldn't text-select on drags;
+          inputs re-enable selection in globals.css @layer base. */}
+      <div className="bg-background flex h-screen select-none flex-col">
+        {/* After an OAuth redirect the first server render is signed-out — refresh
+            once the client session arrives so the app swaps to the logged-in UI. */}
+        {!loggedIn && <SessionWatcher />}
+        <TopBar user={user} />
 
-      <div className="flex min-h-0 flex-1 gap-2 px-2 pb-2">
-        <nav className="bg-card/40 border-border hidden w-60 shrink-0 flex-col rounded-lg border p-3 md:flex">
-          <div className="text-muted-foreground mb-2 flex items-center gap-2 px-2 text-sm font-semibold">
-            <Library className="size-4" /> Your Library
-          </div>
-          <div className="space-y-1">
-            {TABS.map((t) => (
-              <button
-                key={t.kind}
-                onClick={() => setView({ kind: t.kind })}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  activeTab === t.kind
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
-                )}
-              >
-                <t.icon className="size-4" />
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </nav>
+        <div className="flex min-h-0 flex-1 gap-2 px-2 pb-2">
+          <nav className="bg-card/40 border-border hidden w-60 shrink-0 flex-col rounded-lg border p-3 md:flex">
+            <div className="text-muted-foreground mb-2 flex items-center gap-2 px-2 text-sm font-semibold">
+              <Library className="size-4" /> Your Library
+            </div>
+            <div className="space-y-1">
+              {tabs.map((t) => (
+                <button
+                  key={t.kind}
+                  onClick={() => setView({ kind: t.kind })}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    activeTab === t.kind
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
+                  )}
+                >
+                  <t.icon className="size-4" />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </nav>
 
-        <main className="bg-card/20 min-w-0 flex-1 overflow-y-auto rounded-lg p-5">
-          <MainView view={deferredView} userName={name} userImage={image} />
-        </main>
+          <main className="bg-card/20 min-w-0 flex-1 overflow-y-auto rounded-lg p-5">
+            <MainView view={deferredView} userName={name} userImage={image} loggedIn={loggedIn} />
+          </main>
 
-        <RightPanel />
+          <RightPanel />
+        </div>
+
+        <PlayerBar />
+        <Toaster />
+        <AuthPrompt />
       </div>
-
-      <PlayerBar />
-      <Toaster />
-    </div>
+    </LoggedInProvider>
   );
 }

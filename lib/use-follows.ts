@@ -3,6 +3,8 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useLoggedIn } from "./auth-context";
+
 export interface FollowedArtist {
   id: number;
   name: string;
@@ -14,10 +16,12 @@ interface FollowsData {
   artists: FollowedArtist[];
 }
 
-/** Followed artists: ids (button state) + full rows (profile "Following"). */
+/** Followed artists: ids (button state) + full rows (profile "Following"). Only queried when signed in. */
 export function useFollows() {
+  const loggedIn = useLoggedIn();
   return useQuery<FollowsData>({
     queryKey: ["follows"],
+    enabled: loggedIn,
     queryFn: async () => {
       const r = await fetch("/api/follows");
       if (!r.ok) throw new Error("Failed to load follows");

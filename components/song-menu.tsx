@@ -6,6 +6,8 @@ import type { Track } from "@/lib/player-store";
 import { useView } from "@/lib/view-store";
 import { useAddToPlaylist, useCreatePlaylist, usePlaylists, useRemoveFromPlaylist } from "@/lib/use-playlists";
 import { useLikedIds, useToggleLike } from "@/lib/use-likes";
+import { useLoggedIn } from "@/lib/auth-context";
+import { useAuthPrompt } from "@/lib/auth-prompt-store";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -70,7 +72,11 @@ function SongMenuBody({
   playlistContext?: { id: number; name: string };
 }) {
   const setView = useView((s) => s.setView);
-  const { data: playlists = [], isError: playlistsFailed } = usePlaylists();
+  const loggedIn = useLoggedIn();
+  const promptLogin = useAuthPrompt((s) => s.prompt);
+  // Personal-data hooks only matter when signed in; skip their queries/subscriptions
+  // for signed-out visitors (the menu still opens for Go-to-artist/album).
+  const { data: playlists = [], isError: playlistsFailed } = usePlaylists(loggedIn);
   const createPlaylist = useCreatePlaylist();
   const addToPlaylist = useAddToPlaylist();
   const removeFromPlaylist = useRemoveFromPlaylist();
@@ -81,33 +87,44 @@ function SongMenuBody({
 
   return (
     <>
-      <DropdownMenuSub>
-        <DropdownMenuSubTrigger>
-          <ListPlus /> Add to playlist
-        </DropdownMenuSubTrigger>
-        <DropdownMenuSubContent className="w-52">
-          <DropdownMenuItem disabled={busy} onSelect={() => createPlaylist.mutate({ songId: track.id })}>
-            <Plus /> New playlist
-          </DropdownMenuItem>
-          {playlistsFailed && (
-            <DropdownMenuLabel className="text-destructive text-xs font-normal">
-              Couldn&rsquo;t load your playlists.
-            </DropdownMenuLabel>
-          )}
-          {playlists.length > 0 && <DropdownMenuSeparator />}
-          {playlists.map((p) => (
-            <DropdownMenuItem
-              key={p.id}
-              disabled={busy}
-              onSelect={() => addToPlaylist.mutate({ playlistId: p.id, track, playlistName: p.name })}
-            >
-              <span className="truncate">{p.name}</span>
+      {loggedIn ? (
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <ListPlus /> Add to playlist
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent className="w-52">
+            <DropdownMenuItem disabled={busy} onSelect={() => createPlaylist.mutate({ songId: track.id })}>
+              <Plus /> New playlist
             </DropdownMenuItem>
-          ))}
-        </DropdownMenuSubContent>
-      </DropdownMenuSub>
+            {playlistsFailed && (
+              <DropdownMenuLabel className="text-destructive text-xs font-normal">
+                Couldn&rsquo;t load your playlists.
+              </DropdownMenuLabel>
+            )}
+            {playlists.length > 0 && <DropdownMenuSeparator />}
+            {playlists.map((p) => (
+              <DropdownMenuItem
+                key={p.id}
+                disabled={busy}
+                onSelect={() => addToPlaylist.mutate({ playlistId: p.id, track, playlistName: p.name })}
+              >
+                <span className="truncate">{p.name}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+      ) : (
+        <DropdownMenuItem onSelect={() => promptLogin("add songs to playlists")}>
+          <ListPlus /> Add to playlist
+        </DropdownMenuItem>
+      )}
 
-      <DropdownMenuItem onSelect={() => toggleLike.mutate({ track, liked: !isLiked })}>
+      <DropdownMenuItem
+        onSelect={() => {
+          if (!loggedIn) return promptLogin("save songs");
+          toggleLike.mutate({ track, liked: !isLiked });
+        }}
+      >
         <Heart className={isLiked ? "fill-current" : undefined} />
         {isLiked ? "Remove from Liked Songs" : "Save to Liked Songs"}
       </DropdownMenuItem>

@@ -4,11 +4,14 @@ import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { Track } from "./player-store";
+import { useLoggedIn } from "./auth-context";
 
-/** The user's liked songs, most recently liked first. */
+/** The user's liked songs, most recently liked first. Only queried when signed in. */
 export function useLikes() {
+  const loggedIn = useLoggedIn();
   return useQuery<Track[]>({
     queryKey: ["likes"],
+    enabled: loggedIn,
     queryFn: async () => {
       const r = await fetch("/api/likes");
       if (!r.ok) throw new Error("Failed to load liked songs");
