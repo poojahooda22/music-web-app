@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import Image from "next/image";
 import { Clock, Music, Play } from "lucide-react";
 
 import { usePlayer, type Track } from "@/lib/player-store";
@@ -117,8 +118,7 @@ const SongTableRow = memo(function SongTableRow({
       <div className="flex min-w-0 items-center gap-3">
         <div className="bg-muted relative size-10 shrink-0 overflow-hidden rounded">
           {track.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={track.imageUrl} alt="" className="size-full object-cover" loading="lazy" />
+            <Image src={track.imageUrl} alt="" width={48} height={48} className="size-full object-cover" />
           ) : (
             <div className="flex size-full items-center justify-center">
               <Music className="text-muted-foreground size-4" />

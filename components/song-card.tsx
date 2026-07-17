@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import Image from "next/image";
 import { Music, Pause, Play } from "lucide-react";
 
 import { usePlayer, type Track } from "@/lib/player-store";
@@ -33,8 +34,7 @@ export const SongCard = memo(function SongCard({
     >
       <div className="bg-muted relative aspect-square w-full overflow-hidden rounded-lg">
         {track.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={track.imageUrl} alt="" className="size-full object-cover" loading="lazy" />
+          <Image src={track.imageUrl} alt="" width={160} height={160} className="size-full object-cover" />
         ) : (
           <div className="flex size-full items-center justify-center">
             <Music className="text-muted-foreground size-8" />

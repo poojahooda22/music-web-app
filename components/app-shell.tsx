@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useDeferredValue } from "react";
+import Image from "next/image";
 import {
   ChevronLeft,
   Heart,
@@ -121,8 +122,7 @@ function ArtistsView() {
             >
               <div className="bg-muted size-24 shrink-0 overflow-hidden rounded-full">
                 {img ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={img} alt={name} className="size-full object-cover" loading="lazy" />
+                  <Image src={img} alt={name} width={96} height={96} className="size-full object-cover" />
                 ) : (
                   <div className="flex size-full items-center justify-center">
                     <Users className="text-muted-foreground size-8" />
@@ -203,7 +203,7 @@ function DetailView({
           {cover ? (
             cover
           ) : image ? (
-            <img src={image} alt={title} className="size-full object-cover" />
+            <Image src={image} alt={title} width={128} height={128} className="size-full object-cover" />
           ) : (
             <div className="flex size-full items-center justify-center">
               <Music className="text-muted-foreground size-10" />

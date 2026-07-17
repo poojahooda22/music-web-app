@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import Image from "next/image";
 import { Music, Pause, Play } from "lucide-react";
 
 import { usePlayer, type Track } from "@/lib/player-store";
@@ -38,8 +39,7 @@ export const SongRow = memo(function SongRow({
     >
       <div className="bg-muted relative size-11 shrink-0 overflow-hidden rounded-md">
         {track.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={track.imageUrl} alt="" className="size-full object-cover" loading="lazy" />
+          <Image src={track.imageUrl} alt="" width={44} height={44} className="size-full object-cover" />
         ) : (
           <div className="flex size-full items-center justify-center">
             <Music className="text-muted-foreground size-4" />

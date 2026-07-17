@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight, Loader2, Music } from "lucide-react";
 
 import { useSongs } from "@/lib/use-songs";
@@ -112,12 +113,12 @@ export function GenreCircle({
     >
       <div className="bg-muted border-border relative size-28 shrink-0 overflow-hidden rounded-full border">
         {img ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={img}
             alt=""
+            width={112}
+            height={112}
             className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
           />
         ) : (
           <div className="flex size-full items-center justify-center">

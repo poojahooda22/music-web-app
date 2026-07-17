@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { Camera, ListMusic, Loader2, Pencil, Users } from "lucide-react";
 
 import { useProfile, useUpdateProfile } from "@/lib/use-profile";
@@ -90,8 +91,9 @@ export function ProfileView({ userName, userImage }: { userName: string; userIma
           className="group border-border relative size-40 shrink-0 overflow-hidden rounded-full border"
         >
           {avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatar} alt={name} className="size-full object-cover" />
+            // A data-URL photo (or a remote provider avatar) — unoptimized so
+            // next/image serves it as-is without needing every host whitelisted.
+            <Image src={avatar} alt={name} width={256} height={256} unoptimized className="size-full object-cover" />
           ) : (
             <div className="bg-muted text-muted-foreground flex size-full items-center justify-center text-4xl font-semibold">
               {initials(name)}
@@ -185,8 +187,7 @@ export function ProfileView({ userName, userImage }: { userName: string; userIma
               >
                 <div className="bg-muted border-border size-28 shrink-0 overflow-hidden rounded-full border">
                   {a.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={a.imageUrl} alt={a.name} className="size-full object-cover" loading="lazy" />
+                    <Image src={a.imageUrl} alt={a.name} width={112} height={112} className="size-full object-cover" />
                   ) : (
                     <div className="flex size-full items-center justify-center">
                       <Users className="text-muted-foreground size-8" />

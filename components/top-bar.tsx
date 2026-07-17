@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Music, Search } from "lucide-react";
 
-import { signOutAction } from "@/app/actions";
+import { authClient } from "@/lib/auth/client";
 import { useView } from "@/lib/view-store";
 import { ProfileMenu } from "./profile-menu";
 
@@ -53,6 +53,15 @@ export function TopBar({
     };
   }, []);
 
+  // Client-side sign-out + full navigation (mirrors sign-in). The server-action
+  // + redirect() pattern doesn't navigate reliably when fired from a dropdown
+  // onSelect (not a form/transition); the client method clears the cookie and
+  // the hard reload re-reads the cleared session.
+  const onSignOut = async () => {
+    await authClient.signOut();
+    window.location.href = "/";
+  };
+
   return (
     <header className="flex h-16 shrink-0 items-center gap-4 px-4">
       <button
@@ -76,7 +85,7 @@ export function TopBar({
           className="bg-secondary border-border focus:border-ring/60 w-full rounded-full border py-2 pr-4 pl-10 text-sm outline-none"
         />
       </div>
-      <ProfileMenu name={name} email={email} image={image} onSignOut={() => signOutAction()} />
+      <ProfileMenu name={name} email={email} image={image} onSignOut={onSignOut} />
     </header>
   );
 }
