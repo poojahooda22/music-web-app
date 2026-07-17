@@ -33,13 +33,22 @@ export function TopBar({
     }, 250);
   };
 
-  // Navigating away from search (tabs, menus, tiles) clears the box AND cancels
-  // any pending debounce — otherwise the timer fires after the click and yanks
-  // the user back into the search view.
+  // Navigating away from search (tabs, menus, tiles) resets the box. The state
+  // reset runs DURING render via the previous-value pattern (adjust state when a
+  // tracked value changes) rather than in an effect, so it never cascades a
+  // second setState-in-effect render and stale text never paints.
+  const [prevViewKind, setPrevViewKind] = useState(viewKind);
+  if (viewKind !== prevViewKind) {
+    setPrevViewKind(viewKind);
+    if (viewKind !== "search" && q !== "") setQ("");
+  }
+
+  // The imperative side of leaving search: cancel any pending debounce and clear
+  // the guard ref so a mid-flight timer can't yank the user back into search.
+  // Timer/ref writes belong in an effect; only setState-in-effect is avoided.
   useEffect(() => {
     if (viewKind !== "search") {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      setQ("");
       qRef.current = "";
     }
   }, [viewKind]);
@@ -90,7 +99,7 @@ export function TopBar({
           onSignOut={onSignOut}
         />
       ) : (
-        <div className="flex shrink-0 items-center gap-1"> 
+        <div className="flex shrink-0 items-center gap-1">
           <Button
             className="rounded-full"
             onClick={() => (window.location.href = "/auth/sign-in")}
