@@ -31,7 +31,7 @@ export function useUpdateProfile() {
       if (!r.ok) throw new Error("Failed to update profile");
       return (await r.json()) as Profile;
     },
-    meta: { success: () => "Profile updated", error: "Couldn't update your profile — try again." },
+    meta: { toast: () => "Profile updated", error: "Couldn't update your profile — try again." },
     onMutate: async (patch) => {
       await qc.cancelQueries({ queryKey: ["profile"] });
       const prev = qc.getQueryData<Profile>(["profile"]);

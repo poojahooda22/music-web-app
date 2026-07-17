@@ -66,11 +66,10 @@ export function useCreatePlaylist() {
       return j.playlist as PlaylistSummary;
     },
     meta: {
-      success: (data: unknown, vars: unknown) => {
-        const p = data as PlaylistSummary;
-        return (vars as { songId?: number } | undefined)?.songId
-          ? `Added to ${p.name}`
-          : `Created ${p.name}`;
+      toast: (vars: unknown) => {
+        const v = vars as { name?: string; songId?: number } | undefined;
+        if (v?.songId) return "Added to a new playlist";
+        return v?.name ? `Created ${v.name}` : "Playlist created";
       },
       error: "Couldn't create the playlist — try again.",
     },
@@ -112,11 +111,7 @@ export function useAddToPlaylist() {
       return (await r.json()) as { added: boolean };
     },
     meta: {
-      success: (data: unknown, vars: unknown) => {
-        const { added } = data as { added: boolean };
-        const { playlistName } = vars as { playlistName: string };
-        return added ? `Added to ${playlistName}` : `Already in ${playlistName}`;
-      },
+      toast: (vars: unknown) => `Added to ${(vars as { playlistName: string }).playlistName}`,
       error: "Couldn't add to the playlist — try again.",
     },
     onMutate: async ({ playlistId, track }) => {
@@ -161,11 +156,7 @@ export function useRemoveFromPlaylist() {
       return (await r.json()) as { removed: boolean };
     },
     meta: {
-      success: (data: unknown, vars: unknown) => {
-        const { removed } = data as { removed: boolean };
-        const { playlistName } = vars as { playlistName: string };
-        return removed ? `Removed from ${playlistName}` : null;
-      },
+      toast: (vars: unknown) => `Removed from ${(vars as { playlistName: string }).playlistName}`,
       error: "Couldn't remove from the playlist — try again.",
     },
     onMutate: async ({ playlistId, songId }) => {
@@ -213,7 +204,7 @@ export function useRenamePlaylist() {
       return j.playlist as { id: number; name: string };
     },
     meta: {
-      success: (_d: unknown, vars: unknown) => `Renamed to ${(vars as { name: string }).name}`,
+      toast: (vars: unknown) => `Renamed to ${(vars as { name: string }).name}`,
       error: "Couldn't rename the playlist — try again.",
     },
     onMutate: async ({ id, name }) => {
@@ -249,7 +240,7 @@ export function useDeletePlaylist() {
       return (await r.json()) as { deleted: boolean };
     },
     meta: {
-      success: (_d: unknown, vars: unknown) => `Deleted "${(vars as { name: string }).name}"`,
+      toast: (vars: unknown) => `Deleted "${(vars as { name: string }).name}"`,
       error: "Couldn't delete the playlist — try again.",
     },
     onMutate: async ({ id }) => {

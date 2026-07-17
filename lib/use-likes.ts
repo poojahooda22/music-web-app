@@ -45,7 +45,7 @@ export function useToggleLike() {
     // Toast fires from the global MutationCache (unmount-proof) — so liking from
     // a dropdown that closes immediately still confirms. See query-provider.tsx.
     meta: {
-      success: (_d: unknown, vars: unknown) =>
+      toast: (vars: unknown) =>
         (vars as { liked: boolean }).liked ? "Saved to Liked Songs" : "Removed from Liked Songs",
       error: "Couldn't update Liked Songs — try again.",
     },

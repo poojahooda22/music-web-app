@@ -60,7 +60,7 @@ export function useToggleFollow() {
       return r.json();
     },
     meta: {
-      success: (_d: unknown, vars: unknown) => {
+      toast: (vars: unknown) => {
         const { artistName, following } = vars as { artistName: string; following: boolean };
         return following ? `Following ${artistName}` : `Unfollowed ${artistName}`;
       },

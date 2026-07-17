@@ -6,14 +6,15 @@ import { useState } from "react";
 import { useNotify } from "@/lib/notify-store";
 
 /**
- * A mutation may declare its toast text in `meta`. Toasts fire from the global
- * MutationCache (not per-hook/per-call callbacks) so they show even when the
- * component that triggered the mutation unmounts before it settles — e.g. the
- * deleted playlist tile or the removed song row vanishes optimistically. Per-call
- * callbacks are dropped on unmount; MutationCache callbacks always run.
+ * A mutation may declare its toast text in `meta.toast` (derived from the
+ * variables). The success toast fires from the global MutationCache's `onMutate`
+ * — i.e. the instant the action starts, NOT when the server round-trip settles —
+ * so feedback is immediate, matching the optimistic UI. Firing from the cache
+ * (not a per-call callback) also means it survives the triggering component
+ * unmounting (deleted tile / removed row). `error` fires on a failed settle.
  */
 export interface ToastMeta {
-  success?: (data: unknown, vars: unknown) => string | null;
+  toast?: (vars: unknown) => string | null;
   error?: string;
 }
 
@@ -23,9 +24,9 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: { queries: { staleTime: 60_000, refetchOnWindowFocus: false } },
         mutationCache: new MutationCache({
-          onSuccess: (data, vars, _ctx, mutation) => {
+          onMutate: (vars, mutation) => {
             const meta = mutation.meta as ToastMeta | undefined;
-            const msg = meta?.success?.(data, vars);
+            const msg = meta?.toast?.(vars);
             if (msg) useNotify.getState().notify(msg, "success");
           },
           onError: (_err, _vars, _ctx, mutation) => {

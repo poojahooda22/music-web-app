@@ -383,13 +383,11 @@ function PlaylistsView() {
   const createPlaylist = useCreatePlaylist();
   const setView = useView((s) => s.setView);
 
-  // Fire-and-forget: the optimistic tile shows instantly; when the server id
-  // arrives we open the new playlist. The "Created" toast fires from the global
-  // MutationCache (see query-provider.tsx).
+  // Just create — the optimistic tile appears on the grid instantly and the
+  // toast fires immediately. No auto-navigation; the user clicks the tile to
+  // open it.
   const onCreate = () => {
-    createPlaylist.mutate(undefined, {
-      onSuccess: (p) => setView({ kind: "playlist", id: p.id, name: p.name }),
-    });
+    createPlaylist.mutate(undefined);
   };
 
   return (
