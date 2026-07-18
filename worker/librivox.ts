@@ -48,11 +48,17 @@ interface LibriVoxResponse {
   error?: string; // LibriVox returns {"error":"…"} when nothing matches
 }
 
-async function fetchFeed(params: Record<string, string>): Promise<LibriVoxBook[]> {
+async function fetchFeed(params: Record<string, string>, attempt = 0): Promise<LibriVoxBook[]> {
   const qs = new URLSearchParams({ format: "json", ...params });
   const res = await fetch(`${BASE}/?${qs.toString()}`, { headers: { "User-Agent": USER_AGENT } });
   // LibriVox returns 404 (not an empty list) when a query has no matches.
   if (res.status === 404) return [];
+  // Transient 5xx happen mid-catalog — retry with backoff before giving up, so a
+  // momentary blip doesn't permanently drop an otherwise-valid book.
+  if (res.status >= 500 && attempt < 3) {
+    await new Promise((r) => setTimeout(r, 800 * 2 ** attempt)); // 0.8s, 1.6s, 3.2s
+    return fetchFeed(params, attempt + 1);
+  }
   if (!res.ok) throw new Error(`LibriVox API HTTP ${res.status}`);
   const json = (await res.json()) as LibriVoxResponse;
   if (json.error) return [];

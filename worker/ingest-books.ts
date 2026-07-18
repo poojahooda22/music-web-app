@@ -12,7 +12,7 @@
  */
 
 import { S3Client } from "bun";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 
 import { db } from "../db";
 import { books, bookChapters, syncState } from "../db/schema";
@@ -168,14 +168,22 @@ async function main() {
       if (light.language !== "English") continue;
       if (!Number.isFinite(secs) || secs < 1 || secs > MAX_CHAPTERS) continue;
 
+      // Skip only books that are already COMPLETE; a book left partial by an
+      // interrupted run falls through so ingestBook can fill its missing chapters.
       const have = await db
         .select({ id: books.id })
         .from(books)
         .where(eq(books.librivoxId, light.id))
         .limit(1);
       if (have[0]) {
-        skipped++;
-        continue;
+        const [{ n }] = await db
+          .select({ n: count() })
+          .from(bookChapters)
+          .where(eq(bookChapters.bookId, have[0].id));
+        if (n >= secs) {
+          skipped++;
+          continue;
+        }
       }
 
       // The lightweight record has no sections — fetch the full one to ingest.
