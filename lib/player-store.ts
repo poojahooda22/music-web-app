@@ -2,6 +2,10 @@ import { create } from "zustand";
 
 export interface Track {
   id: number;
+  // Discriminates a song (default) from an audiobook chapter. A chapter's id is
+  // from book_chapters, NOT songs — so play/like recording (which key on songs.id)
+  // must be gated on this, or it writes against the wrong table.
+  kind?: "song" | "audiobook";
   title: string;
   artist: string;
   artistId?: number | null;
