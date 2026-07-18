@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "ingest": "bun run worker/ingest.ts",
+    "ingest:books": "bun run worker/ingest-books.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },
