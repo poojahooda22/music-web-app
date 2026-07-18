@@ -159,8 +159,53 @@ export const plays = pgTable(
   (t) => [index('plays_user_played_idx').on(t.userId, t.playedAt)],
 );
 
+// ── Audiobooks (LibriVox, public domain) ────────────────────────────────────
+// A book is the album-equivalent; a chapter is the track-equivalent. LibriVox
+// recordings are public domain, so the audio is re-hosted in R2 (same as music)
+// — unlike podcasts/radio, which will stream from source.
+
+export const books = pgTable(
+  'books',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    librivoxId: text('librivox_id').unique(), // idempotent ingest key
+    title: text('title').notNull(),
+    author: text('author'),
+    reader: text('reader'), // LibriVox volunteer narrator(s)
+    description: text('description'),
+    coverUrl: text('cover_url'),
+    language: text('language'),
+    totalDurationS: integer('total_duration_s'), // set once at ingest (sum of chapters)
+    license: text('license').notNull(), // public-domain mark
+    attribution: text('attribution').notNull(), // rendered on display
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    ingestedAt: timestamp('ingested_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index('books_ingested_at_idx').on(t.ingestedAt)],
+);
+
+export const bookChapters = pgTable(
+  'book_chapters',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    bookId: bigint('book_id', { mode: 'number' })
+      .notNull()
+      .references(() => books.id),
+    title: text('title').notNull(),
+    position: integer('position').notNull(),
+    durationS: integer('duration_s'),
+    fileUrl: text('file_url').notNull(), // R2 object key / CDN path
+    librivoxSectionId: text('librivox_section_id'), // source section id (provenance)
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    // Ordering + idempotency: one chapter per position per book.
+    uniqueIndex('book_chapters_book_position_uq').on(t.bookId, t.position),
+  ],
+);
+
 export const syncState = pgTable('sync_state', {
-  source: text('source').primaryKey(), // 'jamendo'
+  source: text('source').primaryKey(), // 'jamendo' | 'librivox'
   lastSynced: timestamp('last_synced', { withTimezone: true }).notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
