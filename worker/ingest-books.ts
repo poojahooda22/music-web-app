@@ -46,11 +46,12 @@ const PAGE = 50;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Download with exponential backoff on archive.org throttling (503/429). */
+/** Download with exponential backoff on archive.org throttling AND transient 5xx. */
 async function download(url: string, attempt = 0): Promise<Uint8Array> {
   const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
-  if (res.status === 503 || res.status === 429) {
-    if (attempt >= 4) throw new Error(`throttled HTTP ${res.status} after ${attempt} retries`);
+  // archive.org throttles (429/503) and occasionally 500s mid-run — retry all.
+  if (res.status === 429 || res.status >= 500) {
+    if (attempt >= 4) throw new Error(`download HTTP ${res.status} after ${attempt} retries`);
     await sleep(1000 * 2 ** attempt); // 1s, 2s, 4s, 8s
     return download(url, attempt + 1);
   }
@@ -170,6 +171,9 @@ async function main() {
 
       // Skip only books that are already COMPLETE; a book left partial by an
       // interrupted run falls through so ingestBook can fill its missing chapters.
+      // Caveat: num_sections (secs) can exceed the count of sections that actually
+      // have a listen_url, so a fully-downloaded book may re-process harmlessly
+      // (every chapter already exists, so ingestBook adds 0).
       const have = await db
         .select({ id: books.id })
         .from(books)
