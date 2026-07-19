@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Loader2, Music } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Loader2, Music } from "lucide-react";
 
 import { useSongs } from "@/lib/use-songs";
+import { useAudiobooks, type BookSummary } from "@/lib/use-audiobooks";
 import { useView } from "@/lib/view-store";
 import type { Track } from "@/lib/player-store";
 import { cn } from "@/lib/utils";
@@ -161,6 +162,63 @@ function GenreRow({ genre, list }: { genre: string; list: Track[] }) {
   );
 }
 
+function AudiobookCard({ book }: { book: BookSummary }) {
+  const setView = useView((s) => s.setView);
+  return (
+    <button
+      onClick={() => setView({ kind: "book", id: book.id, title: book.title })}
+      className="group bg-card hover:bg-accent/60 border-border focus-visible:ring-ring/50 flex w-40 shrink-0 flex-col gap-2 rounded-xl border p-3 text-left transition-colors outline-none focus-visible:ring-2"
+    >
+      <div className="bg-muted relative aspect-square w-full overflow-hidden rounded-lg">
+        {book.coverUrl ? (
+          <Image src={book.coverUrl} alt="" fill sizes="160px" unoptimized className="object-cover" />
+        ) : (
+          <div className="flex size-full items-center justify-center">
+            <BookOpen className="text-muted-foreground size-8" />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium">{book.title}</p>
+        <p className="text-muted-foreground truncate text-xs">{book.author ?? "Unknown author"}</p>
+      </div>
+    </button>
+  );
+}
+
+/** Home-page audiobooks shelf — hidden until at least one book loads. */
+function AudiobookRow() {
+  const { data: books = [] } = useAudiobooks();
+  const setView = useView((s) => s.setView);
+  const [overflows, setOverflows] = useState(false);
+  if (!books.length) return null;
+  return (
+    <section>
+      <div className="mb-3 flex items-baseline justify-between">
+        <button
+          onClick={() => setView({ kind: "audiobooks" })}
+          className="hover:text-foreground/80 text-lg font-semibold transition-colors"
+        >
+          Audiobooks
+        </button>
+        {overflows && (
+          <button
+            onClick={() => setView({ kind: "audiobooks" })}
+            className="text-muted-foreground hover:text-foreground text-xs font-medium"
+          >
+            Show all
+          </button>
+        )}
+      </div>
+      <ScrollRow itemCount={books.length} onOverflow={setOverflows}>
+        {books.map((b) => (
+          <AudiobookCard key={b.id} book={b} />
+        ))}
+      </ScrollRow>
+    </section>
+  );
+}
+
 export function Browse() {
   const { data: songs = [], isLoading, error } = useSongs();
   const setView = useView((s) => s.setView);
@@ -198,6 +256,8 @@ export function Browse() {
           ))}
         </ScrollRow>
       </section>
+
+      <AudiobookRow />
 
       {genres.map(([genre, list]) => (
         <GenreRow key={genre} genre={genre} list={list} />

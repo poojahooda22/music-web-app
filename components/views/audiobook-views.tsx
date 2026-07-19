@@ -49,7 +49,7 @@ export function AudiobooksView() {
     <div>
       <h1 className="text-2xl font-bold tracking-tight">Audiobooks</h1>
       <p className="text-muted-foreground mb-4 text-sm">
-        {books.length} books · public domain, via LibriVox
+        {books.length} books
       </p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {books.map((b) => (
