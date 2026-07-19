@@ -1,7 +1,7 @@
 "use client";
 
 import { useDeferredValue } from "react";
-import { Heart, Home, Library, ListMusic, Music2, Users } from "lucide-react";
+import { BookOpen, Heart, Home, Library, ListMusic, Music2, Users } from "lucide-react";
 
 import { useView, type View } from "@/lib/view-store";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,7 @@ const TABS = [
   { kind: "home", label: "Home", icon: Home },
   { kind: "songs", label: "Songs", icon: Music2 },
   { kind: "artists", label: "Artists", icon: Users },
+  { kind: "audiobooks", label: "Audiobooks", icon: BookOpen },
   { kind: "playlists", label: "Playlists", icon: ListMusic },
   { kind: "likes", label: "Liked Songs", icon: Heart },
 ] as const;
@@ -29,6 +30,8 @@ function tabFor(view: View): (typeof TABS)[number]["kind"] | null {
       return "artists";
     case "playlist":
       return "playlists";
+    case "book":
+      return "audiobooks";
     case "genre":
     case "genres":
     case "album":

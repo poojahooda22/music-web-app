@@ -19,6 +19,8 @@ export type View =
   | { kind: "genre"; genre: string }
   | { kind: "artist"; name: string }
   | { kind: "album"; id: number; title: string }
+  | { kind: "audiobooks" }
+  | { kind: "book"; id: number; title: string }
   | { kind: "playlist"; id: number; name: string }
   | { kind: "search"; q: string };
 

@@ -193,7 +193,9 @@ export function PlayerBar() {
     if (a && current) {
       a.load();
       a.play().catch(() => {});
-      recordPlay(current.id);
+      // Play counts are a song concept (plays FK -> songs.id); a chapter id is
+      // from book_chapters, so never record a play for an audiobook.
+      if (current.kind !== "audiobook") recordPlay(current.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current?.id]);
@@ -244,7 +246,7 @@ export function PlayerBar() {
           <p className="truncate text-sm font-medium">{current?.title ?? "Nothing playing"}</p>
           <p className="text-muted-foreground truncate text-xs">{current?.artist ?? "—"}</p>
         </div>
-        {current && (
+        {current && current.kind !== "audiobook" && (
           <button
             onClick={() => {
               if (!loggedIn) return promptLogin("save songs");

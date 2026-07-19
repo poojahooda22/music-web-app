@@ -12,6 +12,7 @@ import { ArtistsView, GenresView, SongsView } from "./views/browse-views";
 import { AlbumView, ArtistView, GenreView } from "./views/entity-views";
 import { LikedView, PlaylistView, PlaylistsView } from "./views/library-views";
 import { SearchView } from "./views/search-view";
+import { AudiobooksView, BookView } from "./views/audiobook-views";
 
 /** Shown in place of a personal view when a signed-out visitor reaches it. */
 function GatedNotice({ reason }: { reason: string }) {
@@ -68,6 +69,10 @@ export const MainView = memo(function MainView({
       return <ArtistView name={view.name} />;
     case "album":
       return <AlbumView id={view.id} title={view.title} />;
+    case "audiobooks":
+      return <AudiobooksView />;
+    case "book":
+      return <BookView id={view.id} title={view.title} />;
     case "playlist":
       return loggedIn ? (
         <PlaylistView id={view.id} name={view.name} />
