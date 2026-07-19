@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { BookOpen, ChevronLeft, ChevronRight, Loader2, Music } from "lucide-react";
 
 import { useSongs } from "@/lib/use-songs";
 import { useAudiobooks, type BookSummary } from "@/lib/use-audiobooks";
+import { useTopTracks } from "@/lib/use-top-tracks";
 import { useView } from "@/lib/view-store";
 import type { Track } from "@/lib/player-store";
+import { useLoggedIn } from "@/lib/auth-context";
+import { basedOnRecent, discoverMix, todayPicks, topMixes } from "@/lib/home-shelves";
 import { cn } from "@/lib/utils";
 import { SongCard } from "./song-card";
 
@@ -137,29 +140,27 @@ export function GenreCircle({
   );
 }
 
-function GenreRow({ genre, list }: { genre: string; list: Track[] }) {
-  const setView = useView((s) => s.setView);
-  const [overflows, setOverflows] = useState(false);
+/** A generic home shelf: a titled horizontal row of song cards. Hidden if empty. */
+function SongShelf({ title, tracks }: { title: string; tracks: Track[] }) {
+  if (!tracks.length) return null;
   return (
     <section>
-      <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-lg font-semibold capitalize">{genre}</h2>
-        {overflows && (
-          <button
-            onClick={() => setView({ kind: "genre", genre })}
-            className="text-muted-foreground hover:text-foreground text-xs font-medium"
-          >
-            Show all
-          </button>
-        )}
-      </div>
-      <ScrollRow itemCount={list.length} onOverflow={setOverflows}>
-        {list.map((t, i) => (
-          <SongCard key={t.id} tracks={list} index={i} />
+      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+      <ScrollRow itemCount={tracks.length}>
+        {tracks.map((t, i) => (
+          <SongCard key={t.id} tracks={tracks} index={i} />
         ))}
       </ScrollRow>
     </section>
   );
+}
+
+/** "Based on your recent listening" — mounted only when signed in (it reads the
+ *  user's play history via /api/plays). SongShelf hides it until there's history. */
+function RecentShelf({ catalog }: { catalog: Track[] }) {
+  const { data: recent = [] } = useTopTracks();
+  const picks = useMemo(() => basedOnRecent(catalog, recent), [catalog, recent]);
+  return <SongShelf title="Based on your recent listening" tracks={picks} />;
 }
 
 function AudiobookCard({ book }: { book: BookSummary }) {
@@ -222,6 +223,13 @@ function AudiobookRow() {
 export function Browse() {
   const { data: songs = [], isLoading, error } = useSongs();
   const setView = useView((s) => s.setView);
+  const loggedIn = useLoggedIn();
+
+  // Deterministic client-side derivations (hooks must run before early returns).
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const discover = useMemo(() => discoverMix(songs), [songs]);
+  const top = useMemo(() => topMixes(songs), [songs]);
+  const todays = useMemo(() => todayPicks(songs, today), [songs, today]);
 
   if (isLoading)
     return (
@@ -257,11 +265,11 @@ export function Browse() {
         </ScrollRow>
       </section>
 
+      <SongShelf title="Recommendation" tracks={discover} />
+      <SongShelf title="Top Mixes" tracks={top} />
+      <SongShelf title="Recommended for Today" tracks={todays} />
+      {loggedIn && <RecentShelf catalog={songs} />}
       <AudiobookRow />
-
-      {genres.map(([genre, list]) => (
-        <GenreRow key={genre} genre={genre} list={list} />
-      ))}
     </div>
   );
 }
