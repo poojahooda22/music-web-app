@@ -235,7 +235,14 @@ export function PlayerBar() {
       <div className="flex w-[30%] min-w-0 items-center gap-3">
         <div className="bg-muted relative size-12 shrink-0 overflow-hidden rounded-md">
           {current?.imageUrl ? (
-            <Image src={current.imageUrl} alt={current.title} width={48} height={48} className="size-full object-cover" />
+            <Image
+              src={current.imageUrl}
+              alt={current.title}
+              width={48}
+              height={48}
+              unoptimized={current.kind === "audiobook"}
+              className="size-full object-cover"
+            />
           ) : (
             <div className="flex size-full items-center justify-center">
               <Music className="text-muted-foreground size-5" />
